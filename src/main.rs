@@ -10,11 +10,14 @@ fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
     let default = String::from("assets/triangles.off");
 
-    let file_path: &str = args.get(1).unwrap_or_else(|| &default).as_str();
+    let file_path: &str = args.get(1).unwrap_or(&default).as_str();
 
     let file = File::open(file_path)?;
 
-    let (_vertices, _faces) = read_off_file(file);
+    let (vertices, faces) = read_off_file(file);
+
+    println!("Vertices: {vertices:?}");
+    println!("Faces: {faces:?}");
 
     Ok(())
 }
