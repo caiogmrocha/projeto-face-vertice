@@ -14,11 +14,8 @@ use projeto_face_vertice::{
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
     let default = String::from("assets/triangles.off");
-
     let file_path: &str = args.get(1).unwrap_or_else(|| &default).as_str();
-
     let file = File::open(file_path)?;
-
     let (_vertices, _faces) = read_off_file(file);
     
     App::new()
@@ -29,7 +26,9 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-const CUBE_COLLOR: Color = Color::srgb(255.0, 155.0, 155.0);
+const CUBE_COLOR: Color = Color::srgb(5.0, 155.0, 155.0);
+const VERTEX_CIRCLE_SIZE: f32 = 0.250;
+
 
 fn setup(
     mut commands: Commands,
@@ -42,9 +41,15 @@ fn setup(
         CameraController::default(),
     ));
 
+    // render sphere
     commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        MeshMaterial3d(materials.add(CUBE_COLLOR)),
-        Transform::from_xyz(0.0, 0.5, 0.0),
+        Mesh3d(meshes.add(Sphere::new(VERTEX_CIRCLE_SIZE))),
+        MeshMaterial3d(materials.add(CUBE_COLOR)),
+        Transform::from_xyz(0.0, 0.0, 0.0)
+    ));
+    commands.spawn((
+        Mesh3d(meshes.add(Sphere::new(VERTEX_CIRCLE_SIZE))),
+        MeshMaterial3d(materials.add(CUBE_COLOR)),
+        Transform::from_xyz(5.0, 0.0, 0.0)
     ));
 }
