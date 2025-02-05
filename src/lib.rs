@@ -1,4 +1,41 @@
-use std::{fs::File, io::{BufRead, BufReader}, process};
+use std::{fs::File, io::{BufRead, BufReader, BufWriter, Write}, process};
+
+pub enum Operation {
+    Read,
+    Write,
+}
+
+pub struct Config {
+    pub operation: Operation,
+    pub file_name: String,
+}
+
+impl Config {
+    pub fn build(args: Vec<String>) -> Result<Config, &'static str> {
+        let Some(operation) = args.get(1) else {
+            return Err("The first argument must be provided and indicates the operation, that have to be either \"--write\" or \"--read\"")
+        };
+
+        if operation != "--write" && operation != "--read" {
+            return Err("The operation must be either \"--write\" or \"--read\"")
+        }
+
+        let file_name = if let Some(file_name) = args.get(2) {
+            file_name.clone()
+        } else {
+            String::from("assets/triangles.off")
+        };
+
+        if !file_name.contains(".off") {
+            return Err("The file name must have the .off extension")
+        }
+
+        Ok(Config {
+            operation: if operation == "--write" { Operation::Read } else { Operation::Write },
+            file_name,
+        })
+    }
+}
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -7,8 +44,8 @@ pub struct Vertex (f32,f32,f32);
 pub type Face = Vec<i32>;
 pub type Faces = Vec<Face>;
 
-pub fn read_off_file(file: File) -> (Vec<Vertex>, Faces) {
-    let reader = BufReader::new(file);
+pub fn read_off_file(input_file: &File) -> (Vec<Vertex>, Faces) {
+    let reader = BufReader::new(input_file);
     let mut lines = reader.lines();
     
     let first_line = lines.next().unwrap().unwrap();
@@ -55,4 +92,30 @@ pub fn read_off_file(file: File) -> (Vec<Vertex>, Faces) {
     }
 
     (vertices, faces)
+}
+
+pub fn write_off_file(output_file: &File, vertices: &Vec<Vertex>, faces: &Faces) -> Result<(), Box<dyn std::error::Error>> {
+    let mut writer = BufWriter::new(output_file);
+
+    writer.write(b"OFF\n")?;
+
+    writer.write(format!("{} {} 0\n", vertices.len(), faces.len()).as_bytes())?;
+
+    for vertex in vertices.iter() {
+        writer.write(format!("{} {} {}\n", vertex.0, vertex.1, vertex.2).as_bytes())?;
+    }
+
+    for face in faces.iter() {
+        let mut line = String::from(format!("{}", face.len()));
+
+        for i in 0..face.len() {
+            line += format!(" {}", face[i]).as_str();
+        }
+
+        line += "\n";
+
+        writer.write(line.as_bytes())?;
+    }
+
+    Ok(())
 }

@@ -7,11 +7,9 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceFolder}/src/main",
-            "args": [
-                "assets/triangles.off"
-            ],
+            "name": "Launch",
+            "program": "${workspaceFolder}\\src\\main",
+            "args": [],
             "cwd": "${workspaceFolder}"
         }
     ]

@@ -1,23 +1,34 @@
 use std::{
-    env,
-    fs::File,
-    io,
+    env::{self},
+    fs::{exists, remove_file, File},
 };
 
-use projeto_face_vertice::read_off_file;
+use projeto_face_vertice::{read_off_file, write_off_file, Config, Operation};
 
-fn main() -> io::Result<()> {
-    let args: Vec<String> = env::args().collect();
-    let default = String::from("assets/triangles.off");
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let config = Config::build(env::args().collect())?;
 
-    let file_path: &str = args.get(1).unwrap_or(&default).as_str();
+    let input_file = File::open(config.file_name)?;
+    
+    let (vertices, faces) = read_off_file(&input_file);
+    
+    match config.operation {
+        Operation::Read => {
+            let output_file_path = "assets/output.off";
 
-    let file = File::open(file_path)?;
+            if exists(output_file_path)? {
+                remove_file(output_file_path)?;
+            };
 
-    let (vertices, faces) = read_off_file(file);
+            let output_file = File::create_new(output_file_path)?;
 
-    println!("Vertices: {vertices:?}");
-    println!("Faces: {faces:?}");
+            write_off_file(&output_file, &vertices, &faces)?;
+        },
+        Operation::Write => {
+            println!("Vertices: {vertices:#?}");
+            println!("Faces: {faces:#?}");
+        },
+    }
 
     Ok(())
 }
